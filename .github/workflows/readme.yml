@@ -12,6 +12,9 @@ on:
     paths:
       - main.go
 
+env:
+  GITHUB_TOKEN: {{secrets.GITHUB_TOKEN}}
+
 jobs:
   sync:
     name: Generate Readme
