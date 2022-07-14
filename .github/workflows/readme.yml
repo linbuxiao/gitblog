@@ -16,20 +16,20 @@ jobs:
   sync:
     name: Generate Readme
     runs-on: ubuntu-latest
-        steps:
-          - uses: actions/checkout@v2
-          - uses: actions/setup-go@v3
-            with:
-              go-version: '^1.18.1'
-              cache: true
-              cache-dependency-path: go.sum
-          - run: go run main.go
-          - name: Create Pull Request
-            id: cpr
-            uses: peter-evans/create-pull-request@v4
-          - name: Check outputs
-            if: ${{ steps.cpr.outputs.pull-request-number }}
-            run: |
-              echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
-              echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '^1.18.1'
+          cache: true
+          cache-dependency-path: go.sum
+      - run: go run main.go
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v4
+      - name: Check outputs
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
     
