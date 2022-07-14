@@ -35,6 +35,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	if !fileExist("README.md") {
+		_, err := os.Create("README.md")
+		if err != nil {
+			panic(err)
+		}
+	}
 	ioutil.WriteFile("README.md", []byte(newReadMe), 0666)
 }
 
@@ -75,4 +81,14 @@ func parseIssueTitleAndLink(issues []*github.Issue) []*issue {
 		}
 	}
 	return res
+}
+
+func fileExist(filename string) bool {
+	_, err := os.Stat(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }
