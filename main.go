@@ -2,14 +2,32 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 
 	"github.com/flosch/pongo2/v6"
 	"github.com/google/go-github/v45/github"
+	"golang.org/x/oauth2"
 )
 
-/* -------------------------------------------------------------------------- */
-/*                           通过 git issue 生成 readme                       */
-/* -------------------------------------------------------------------------- */
+/* ------------------------- 通过 git issue 生成 readme ------------------------- */
+
+const readmeTemplate = `# Git Blog
+
+## Top
+{%- for post in allList %}
+{%- if post.IsTop %} 
+- [{{ post.Title }}]({{ post.Link }}) 
+{%- endif %} 
+{%- endfor %}
+
+## All
+{%- for post in allList %} 
+- [{{ post.Title }}]({{ post.Link }}) 
+{%- endfor %}
+`
+
+var GITHUB_TOKEN = os.Getenv("GITHUB_TOKEN")
 
 func main() {
 	issues, err := getAllIssues()
@@ -17,40 +35,51 @@ func main() {
 		panic(err)
 	}
 	output := parseIssueTitleAndLink(issues)
-	t, _ := pongo2.FromString("")
-	t.Execute(pongo2.Context{
-		"arr": output,
+	t := pongo2.Must(pongo2.FromString(readmeTemplate))
+	newReadMe, err := t.Execute(pongo2.Context{
+		"allList": output,
 	})
+	if err != nil {
+		panic(err)
+	}
+	ioutil.WriteFile("README.md", []byte(newReadMe), 0666)
 }
 
-// GetAllIssues 拉取所有 issues
 func getAllIssues() ([]*github.Issue, error) {
-	client := github.NewClient(nil)
 	ctx := context.Background()
-	issues, _, err := client.Issues.List(ctx, true, nil)
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: GITHUB_TOKEN},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+	client := github.NewClient(tc)
+	issues, _, err := client.Issues.ListByRepo(ctx, "linbuxiao", "gitblog", nil)
 	return issues, err
 }
 
-// 用于渲染
 type issue struct {
 	Title string `json:"title"`
-	Link  string `json:"Link"`
+	Link  string `json:"link"`
+	IsTop bool   `json:"is_top"`
 }
 
-// 解析所有 issue 标题和链接
 func parseIssueTitleAndLink(issues []*github.Issue) []*issue {
 	res := make([]*issue, len(issues))
 	for i, v := range issues {
 		if v.URL == nil || v.Title == nil {
 			continue
 		}
+		isTop := false
+		for _, x := range v.Labels {
+			if x.GetName() == "Top" {
+				isTop = true
+				break
+			}
+		}
 		res[i] = &issue{
 			Title: *v.Title,
 			Link:  *v.URL,
+			IsTop: isTop,
 		}
 	}
 	return res
-}
-
-func renderReadme() error {
 }
