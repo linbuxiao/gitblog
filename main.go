@@ -14,14 +14,7 @@ import (
 
 const readmeTemplate = `# Git Blog
 
-## Top
-{%- for post in allList %}
-{%- if post.IsTop %} 
-- [{{ post.Title }}]({{ post.Link }}) 
-{%- endif %} 
-{%- endfor %}
-
-## All
+## Posts
 {%- for post in allList %} 
 - [{{ post.Title }}]({{ post.Link }}) 
 {%- endfor %}
