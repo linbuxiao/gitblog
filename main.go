@@ -77,7 +77,7 @@ func parseIssueTitleAndLink(issues []*github.Issue) []*issue {
 		}
 		res[i] = &issue{
 			Title: *v.Title,
-			Link:  *v.URL,
+			Link:  *v.HTMLURL,
 			IsTop: isTop,
 		}
 	}
